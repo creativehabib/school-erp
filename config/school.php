@@ -9,4 +9,6 @@ return [
     ],
 
     'seed_demo_data' => (bool) env('SEED_DEMO_DATA', false),
+
+    'admission_default_password' => env('ADMISSION_DEFAULT_PASSWORD', 'ChangeMe!2026'),
 ];

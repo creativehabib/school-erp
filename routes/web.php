@@ -2,6 +2,7 @@
 
 use App\Livewire\Academic\ManageClasses;
 use App\Livewire\Academic\ManageShifts;
+use App\Livewire\Academic\StudentAdmission;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -26,6 +27,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::livewire('users', 'pages::admin.users.index')->name('users.index');
         Route::get('academic/shifts', ManageShifts::class)->name('academic.shifts');
         Route::get('academic/classes', ManageClasses::class)->name('academic.classes');
+        Route::get('students/admit', StudentAdmission::class)->name('students.admit');
     });
 
     Route::prefix('teacher')->middleware('role:teacher')->name('teacher.')->group(function () {

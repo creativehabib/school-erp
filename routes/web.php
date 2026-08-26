@@ -1,8 +1,10 @@
 <?php
 
+use App\Http\Controllers\Documents\DownloadStudentIDCardsController;
 use App\Livewire\Academic\ManageClasses;
 use App\Livewire\Academic\ManageShifts;
 use App\Livewire\Academic\StudentAdmission;
+use App\Livewire\Documents\IDCardGenerator;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -28,6 +30,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('academic/shifts', ManageShifts::class)->name('academic.shifts');
         Route::get('academic/classes', ManageClasses::class)->name('academic.classes');
         Route::get('students/admit', StudentAdmission::class)->name('students.admit');
+        Route::get('documents/id-cards', IDCardGenerator::class)->name('documents.id_cards.index');
+        Route::get('documents/id-cards/download', DownloadStudentIDCardsController::class)
+            ->middleware('signed')
+            ->name('documents.id_cards.download');
     });
 
     Route::prefix('teacher')->middleware('role:teacher')->name('teacher.')->group(function () {

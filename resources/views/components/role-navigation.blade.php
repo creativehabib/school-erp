@@ -29,6 +29,11 @@
             {{ __('Student admission') }}
         </flux:sidebar.item>
     @endcan
+    @can('document.id_card.generate')
+        <flux:sidebar.item icon="identification" :href="route('admin.documents.id_cards.index')" :current="request()->routeIs('admin.documents.id_cards.*')" wire:navigate>
+            {{ __('Student ID cards') }}
+        </flux:sidebar.item>
+    @endcan
     <flux:sidebar.item icon="cog-6-tooth" :href="route('profile.edit')" :current="request()->routeIs('profile.*', 'appearance.*', 'security.*')" wire:navigate>
         {{ __('Account settings') }}
     </flux:sidebar.item>

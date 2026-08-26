@@ -4,6 +4,7 @@ use App\Http\Controllers\Documents\DownloadStudentIDCardsController;
 use App\Livewire\Academic\ManageClasses;
 use App\Livewire\Academic\ManageShifts;
 use App\Livewire\Academic\StudentAdmission;
+use App\Livewire\Academic\TakeAttendance;
 use App\Livewire\Documents\IDCardGenerator;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
@@ -34,6 +35,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('documents/id-cards/download', DownloadStudentIDCardsController::class)
             ->middleware('signed')
             ->name('documents.id_cards.download');
+    });
+
+    Route::prefix('attendance')->middleware('role:super_admin|admin|teacher')->name('attendance.')->group(function () {
+        Route::get('take', TakeAttendance::class)->name('take');
     });
 
     Route::prefix('teacher')->middleware('role:teacher')->name('teacher.')->group(function () {

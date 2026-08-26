@@ -34,6 +34,11 @@
             {{ __('Student ID cards') }}
         </flux:sidebar.item>
     @endcan
+    @can('academic.attendance.record')
+        <flux:sidebar.item icon="clipboard-document-check" :href="route('attendance.take')" :current="request()->routeIs('attendance.take')" wire:navigate>
+            {{ __('Take attendance') }}
+        </flux:sidebar.item>
+    @endcan
     <flux:sidebar.item icon="cog-6-tooth" :href="route('profile.edit')" :current="request()->routeIs('profile.*', 'appearance.*', 'security.*')" wire:navigate>
         {{ __('Account settings') }}
     </flux:sidebar.item>

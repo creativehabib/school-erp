@@ -19,6 +19,11 @@
             {{ __('Shifts') }}
         </flux:sidebar.item>
     @endcan
+    @can('academic.session.view')
+        <flux:sidebar.item icon="calendar-days" :href="route('admin.academic.years')" :current="request()->routeIs('admin.academic.years')" wire:navigate>
+            {{ __('Academic years') }}
+        </flux:sidebar.item>
+    @endcan
     @can('academic.class.view')
         <flux:sidebar.item icon="academic-cap" :href="route('admin.academic.classes')" :current="request()->routeIs('admin.academic.classes')" wire:navigate>
             {{ __('Classes') }}

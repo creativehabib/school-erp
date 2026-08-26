@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Documents\DownloadStudentIDCardsController;
+use App\Livewire\Academic\ManageAcademicYears;
 use App\Livewire\Academic\ManageClasses;
 use App\Livewire\Academic\ManageShifts;
 use App\Livewire\Academic\MarksEntry;
@@ -31,6 +32,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::livewire('users', 'pages::admin.users.index')->name('users.index');
         Route::get('academic/shifts', ManageShifts::class)->name('academic.shifts');
         Route::get('academic/classes', ManageClasses::class)->name('academic.classes');
+        Route::get('academic/years', ManageAcademicYears::class)->name('academic.years');
         Route::get('students/admit', StudentAdmission::class)->name('students.admit');
         Route::get('documents/id-cards', IDCardGenerator::class)->name('documents.id_cards.index');
         Route::get('documents/id-cards/download', DownloadStudentIDCardsController::class)

@@ -12,6 +12,9 @@
     @if ($academicSessionId === null)
         <flux:callout variant="warning" icon="exclamation-triangle" heading="{{ __('No current academic year') }}">
             {{ __('Set an active academic year before recording attendance.') }}
+            @can('academic.session.create')
+                <flux:link :href="route('admin.academic.years')" wire:navigate>{{ __('Create academic year') }}</flux:link>
+            @endcan
         </flux:callout>
     @endif
 

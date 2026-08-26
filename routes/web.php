@@ -21,6 +21,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::prefix('admin')->middleware('role:super_admin|admin')->name('admin.')->group(function () {
         Route::livewire('dashboard', 'pages::dashboards.admin')->name('dashboard');
+        Route::livewire('users', 'pages::admin.users.index')->name('users.index');
     });
 
     Route::prefix('teacher')->middleware('role:teacher')->name('teacher.')->group(function () {

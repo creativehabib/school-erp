@@ -128,9 +128,9 @@ final class QrCodeService
             ->generate($content);
     }
 
-    public function dataUri(string $content, ?int $size = null): string
+    public function dataUri(string $content, ?int $size = null, ?string $format = null): string
     {
-        $format = $this->preferredFormat();
+        $format ??= $this->preferredFormat();
         $mime = $format === 'svg' ? 'image/svg+xml' : 'image/png';
 
         return 'data:'.$mime.';base64,'.base64_encode($this->raw($content, $size, $format));

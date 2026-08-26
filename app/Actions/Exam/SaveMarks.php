@@ -8,7 +8,7 @@ use App\Models\Academic\StudentEnrollment;
 use App\Models\Exam\ExamSubject;
 use App\Models\Exam\Mark;
 use App\Models\User;
-use App\Services\Exam\GradingService;
+use App\Services\GradingService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use RuntimeException;
@@ -100,7 +100,7 @@ final class SaveMarks
             $isFailing = ! $examSubject->isPassing($draftMark);
             $grade = $isFailing
                 ? ['grade' => 'F', 'gpa' => 0.0]
-                : $this->grading->grade($total, (float) $examSubject->full_marks);
+                : $this->grading->calculateForPaper($total, (float) $examSubject->full_marks);
 
             $payload[] = [
                 'exam_subject_id' => $examSubject->getKey(),

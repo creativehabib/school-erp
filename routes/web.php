@@ -1,5 +1,7 @@
 <?php
 
+use App\Livewire\Academic\ManageClasses;
+use App\Livewire\Academic\ManageShifts;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -22,6 +24,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::prefix('admin')->middleware('role:super_admin|admin')->name('admin.')->group(function () {
         Route::livewire('dashboard', 'pages::dashboards.admin')->name('dashboard');
         Route::livewire('users', 'pages::admin.users.index')->name('users.index');
+        Route::get('academic/shifts', ManageShifts::class)->name('academic.shifts');
+        Route::get('academic/classes', ManageClasses::class)->name('academic.classes');
     });
 
     Route::prefix('teacher')->middleware('role:teacher')->name('teacher.')->group(function () {

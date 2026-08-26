@@ -14,6 +14,16 @@
             {{ __('Users & access') }}
         </flux:sidebar.item>
     @endcan
+    @can('academic.shift.view')
+        <flux:sidebar.item icon="clock" :href="route('admin.academic.shifts')" :current="request()->routeIs('admin.academic.shifts')" wire:navigate>
+            {{ __('Shifts') }}
+        </flux:sidebar.item>
+    @endcan
+    @can('academic.class.view')
+        <flux:sidebar.item icon="academic-cap" :href="route('admin.academic.classes')" :current="request()->routeIs('admin.academic.classes')" wire:navigate>
+            {{ __('Classes') }}
+        </flux:sidebar.item>
+    @endcan
     <flux:sidebar.item icon="cog-6-tooth" :href="route('profile.edit')" :current="request()->routeIs('profile.*', 'appearance.*', 'security.*')" wire:navigate>
         {{ __('Account settings') }}
     </flux:sidebar.item>

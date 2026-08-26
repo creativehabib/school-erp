@@ -39,6 +39,11 @@
             {{ __('Take attendance') }}
         </flux:sidebar.item>
     @endcan
+    @can('academic.mark.enter')
+        <flux:sidebar.item icon="pencil-square" :href="route('exams.marks')" :current="request()->routeIs('exams.marks')" wire:navigate>
+            {{ __('Marks entry') }}
+        </flux:sidebar.item>
+    @endcan
     <flux:sidebar.item icon="cog-6-tooth" :href="route('profile.edit')" :current="request()->routeIs('profile.*', 'appearance.*', 'security.*')" wire:navigate>
         {{ __('Account settings') }}
     </flux:sidebar.item>

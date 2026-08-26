@@ -46,6 +46,7 @@ final class RecordStudentAttendance
         // Only accept enrollments that actually belong to this section. Without this, a
         // crafted or stale form could write attendance for another class's students.
         $valid = StudentEnrollment::query()
+            ->current()
             ->where('section_id', $sectionId)
             ->whereIn('id', array_keys($statuses))
             ->pluck('id')

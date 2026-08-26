@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace App\Actions\Exam;
 
+use App\Models\Academic\StudentEnrollment;
 use App\Models\Exam\ExamSubject;
 use App\Models\Exam\Mark;
 use App\Models\User;
+use App\Services\Exam\GradingService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use RuntimeException;
 
 /**
@@ -24,6 +27,10 @@ use RuntimeException;
  */
 final class SaveMarks
 {
+    public function __construct(private GradingService $grading)
+    {
+    }
+
     /**
      * @param  array<int, array{cq?: float|string|null, mcq?: float|string|null, practical?: float|string|null, total?: float|string|null, is_absent?: bool}>  $rows
      *                                                                                                                                                        Keyed by student_enrollment_id.
@@ -40,6 +47,22 @@ final class SaveMarks
         }
 
         $components = $examSubject->activeComponents();
+        $enrollmentIds = collect(array_keys($rows))->map(fn (int|string $id): int => (int) $id)->unique()->sort()->values();
+        $validEnrollmentIds = StudentEnrollment::query()
+            ->current()
+            ->where('academic_session_id', $examSubject->exam->academic_session_id)
+            ->where('school_class_id', $examSubject->classSubject->school_class_id)
+            ->whereKey($enrollmentIds)
+            ->pluck('id')
+            ->sort()
+            ->values();
+
+        if ($enrollmentIds->all() !== $validEnrollmentIds->all()) {
+            throw ValidationException::withMessages([
+                'marksData' => 'One or more students are outside this exam paper.',
+            ]);
+        }
+
         $userId = $enteredBy?->getKey() ?? auth()->id();
         $payload = [];
 
@@ -67,6 +90,18 @@ final class SaveMarks
                 );
             }
 
+            $draftMark = new Mark([
+                'cq_marks' => $cq,
+                'mcq_marks' => $mcq,
+                'practical_marks' => $practical,
+                'obtained_marks' => $total,
+                'is_absent' => $isAbsent,
+            ]);
+            $isFailing = ! $examSubject->isPassing($draftMark);
+            $grade = $isFailing
+                ? ['grade' => 'F', 'gpa' => 0.0]
+                : $this->grading->grade($total, (float) $examSubject->full_marks);
+
             $payload[] = [
                 'exam_subject_id' => $examSubject->getKey(),
                 'student_enrollment_id' => (int) $enrollmentId,
@@ -75,11 +110,10 @@ final class SaveMarks
                 'practical_marks' => $practical,
                 'obtained_marks' => round($total, 2),
                 'is_absent' => $isAbsent,
+                'grade' => $grade['grade'],
+                'gpa' => $grade['gpa'],
+                'is_failing' => $isFailing,
                 'entered_by' => $userId,
-                // Grade and GPA are deliberately left alone here. They are a snapshot
-                // written by ProcessExamResult; setting them at entry time would show a
-                // grade before the result has been processed and before the component
-                // pass rules have been applied.
                 'created_at' => now(),
                 'updated_at' => now(),
             ];
@@ -95,7 +129,7 @@ final class SaveMarks
                     $chunk,
                     ['exam_subject_id', 'student_enrollment_id'],
                     ['cq_marks', 'mcq_marks', 'practical_marks', 'obtained_marks',
-                        'is_absent', 'entered_by', 'updated_at'],
+                        'is_absent', 'grade', 'gpa', 'is_failing', 'entered_by', 'updated_at'],
                 );
             }
         });

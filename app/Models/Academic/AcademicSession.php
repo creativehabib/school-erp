@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models\Academic;
 
+use App\Models\Exam\Exam;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -42,6 +43,11 @@ class AcademicSession extends Model
     public function enrollments(): HasMany
     {
         return $this->hasMany(StudentEnrollment::class);
+    }
+
+    public function exams(): HasMany
+    {
+        return $this->hasMany(Exam::class);
     }
 
     /** Guard for back-dated edits once the year is closed. */

@@ -127,8 +127,17 @@ class User extends Authenticatable
             $this->hasRole(RoleName::Teacher->value) => 'teacher.dashboard',
             $this->hasRole(RoleName::Guardian->value) => 'guardian.dashboard',
             $this->hasRole(RoleName::Student->value) => 'student.dashboard',
-            default => 'dashboard',
+            default => 'dashboard.unassigned',
         };
+    }
+
+    public function initials(): string
+    {
+        return collect(explode(' ', trim($this->name)))
+            ->filter()
+            ->take(2)
+            ->map(fn (string $part): string => mb_strtoupper(mb_substr($part, 0, 1)))
+            ->implode('');
     }
 
     /** Used by SMS notification channels (bulk SMS gateways in BD). */

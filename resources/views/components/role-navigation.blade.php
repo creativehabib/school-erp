@@ -54,6 +54,11 @@
             {{ __('Marks entry') }}
         </flux:sidebar.item>
     @endcan
+    @can('academic.marksheet.generate')
+        <flux:sidebar.item icon="document-chart-bar" :href="route('documents.marksheets.index')" :current="request()->routeIs('documents.marksheets.*')" wire:navigate>
+            {{ __('Marksheets') }}
+        </flux:sidebar.item>
+    @endcan
     <flux:sidebar.item icon="cog-6-tooth" :href="route('profile.edit')" :current="request()->routeIs('profile.*', 'appearance.*', 'security.*')" wire:navigate>
         {{ __('Account settings') }}
     </flux:sidebar.item>

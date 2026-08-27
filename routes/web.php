@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Documents\DownloadMarksheetsController;
+use App\Http\Controllers\Documents\DownloadOwnMarksheetController;
 use App\Http\Controllers\Documents\DownloadStudentIDCardsController;
 use App\Livewire\Academic\ManageAcademicYears;
 use App\Livewire\Academic\ManageClasses;
@@ -9,6 +11,7 @@ use App\Livewire\Academic\MarksEntry;
 use App\Livewire\Academic\StudentAdmission;
 use App\Livewire\Academic\TakeAttendance;
 use App\Livewire\Documents\IDCardGenerator;
+use App\Livewire\Documents\MarksheetGenerator;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -49,6 +52,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::prefix('exams')->middleware('role:super_admin|admin|teacher')->name('exams.')->group(function () {
         Route::get('marks', MarksEntry::class)->name('marks');
     });
+
+    Route::prefix('marksheets')->middleware('role:super_admin|admin|teacher')->name('documents.marksheets.')->group(function () {
+        Route::get('/', MarksheetGenerator::class)->name('index');
+        Route::get('download', DownloadMarksheetsController::class)->middleware('signed')->name('download');
+    });
+
+    Route::get('my-marksheets/{result}', DownloadOwnMarksheetController::class)
+        ->middleware('role:student|guardian')
+        ->name('portal.marksheets.download');
 
     Route::prefix('teacher')->middleware('role:teacher')->name('teacher.')->group(function () {
         Route::livewire('dashboard', 'pages::dashboards.teacher')->name('dashboard');

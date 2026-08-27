@@ -2,6 +2,7 @@
 
 use App\Enums\RoleName;
 use App\Livewire\Academic\ManageClasses;
+use App\Livewire\Academic\ManageSections;
 use App\Livewire\Academic\ManageShifts;
 use App\Models\Academic\SchoolClass;
 use App\Models\Academic\Section;
@@ -27,6 +28,7 @@ test('administrators can open shift and class management', function () {
 
     $this->actingAs($admin)->get(route('admin.academic.shifts'))->assertOk()->assertSee('Shift Management');
     $this->actingAs($admin)->get(route('admin.academic.classes'))->assertOk()->assertSee('Class Management');
+    $this->actingAs($admin)->get(route('admin.academic.sections'))->assertOk()->assertSee('Section Management');
 });
 
 test('non administrative roles cannot open academic setup pages', function (RoleName $role) {
@@ -34,6 +36,7 @@ test('non administrative roles cannot open academic setup pages', function (Role
 
     $this->actingAs($user)->get(route('admin.academic.shifts'))->assertForbidden();
     $this->actingAs($user)->get(route('admin.academic.classes'))->assertForbidden();
+    $this->actingAs($user)->get(route('admin.academic.sections'))->assertForbidden();
 })->with([
     RoleName::Teacher,
     RoleName::Student,
@@ -63,6 +66,53 @@ test('an administrator can create and update a shift', function () {
         ->assertHasNoErrors();
 
     $this->assertDatabaseHas('shifts', ['id' => $shift->id, 'name' => 'Day', 'is_active' => true]);
+});
+
+test('an administrator can create and update a section', function () {
+    $admin = academicUser(RoleName::Admin);
+    $schoolClass = SchoolClass::query()->create(['name' => 'Class Six', 'code' => 'C6', 'level' => 6]);
+    $shift = Shift::query()->create(['name' => 'Morning']);
+
+    $component = Livewire::actingAs($admin)
+        ->test(ManageSections::class)
+        ->set('schoolClassId', $schoolClass->id)
+        ->set('shiftId', $shift->id)
+        ->set('name', 'A')
+        ->set('capacity', 40)
+        ->set('roomNo', '201')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $section = Section::query()->where('name', 'A')->firstOrFail();
+
+    $component
+        ->call('edit', $section->id)
+        ->set('name', 'B')
+        ->set('capacity', 45)
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $this->assertDatabaseHas('sections', [
+        'id' => $section->id,
+        'school_class_id' => $schoolClass->id,
+        'shift_id' => $shift->id,
+        'name' => 'B',
+        'capacity' => 45,
+        'room_no' => '201',
+    ]);
+});
+
+test('a section name must be unique within its class and shift', function () {
+    $admin = academicUser(RoleName::Admin);
+    $schoolClass = SchoolClass::query()->create(['name' => 'Class Seven', 'code' => 'C7', 'level' => 7]);
+    Section::query()->create(['school_class_id' => $schoolClass->id, 'name' => 'A']);
+
+    Livewire::actingAs($admin)
+        ->test(ManageSections::class)
+        ->set('schoolClassId', $schoolClass->id)
+        ->set('name', 'A')
+        ->call('save')
+        ->assertHasErrors(['name' => 'unique']);
 });
 
 test('a shift requires a unique name and an end time after its start time', function () {

@@ -29,6 +29,11 @@
             {{ __('Classes') }}
         </flux:sidebar.item>
     @endcan
+    @can('academic.section.view')
+        <flux:sidebar.item icon="rectangle-group" :href="route('admin.academic.sections')" :current="request()->routeIs('admin.academic.sections')" wire:navigate>
+            {{ __('Sections') }}
+        </flux:sidebar.item>
+    @endcan
     @can('academic.student.create')
         <flux:sidebar.item icon="user-plus" :href="route('admin.students.admit')" :current="request()->routeIs('admin.students.admit')" wire:navigate>
             {{ __('Student admission') }}

@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 /**
  * A title. Physical objects live in BookCopy.
@@ -55,6 +56,11 @@ class Book extends Model
     public function availableCopies(): HasMany
     {
         return $this->copies()->where('status', BookCopyStatus::Available);
+    }
+
+    public function issues(): HasManyThrough
+    {
+        return $this->hasManyThrough(BookIssue::class, BookCopy::class);
     }
 
     public function scopeActive(Builder $query): Builder

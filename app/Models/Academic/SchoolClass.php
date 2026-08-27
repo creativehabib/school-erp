@@ -34,6 +34,11 @@ class SchoolClass extends Model
         return $this->hasMany(Section::class);
     }
 
+    public function classSubjects(): HasMany
+    {
+        return $this->hasMany(ClassSubject::class);
+    }
+
     public function enrollments(): HasMany
     {
         return $this->hasMany(StudentEnrollment::class);

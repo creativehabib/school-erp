@@ -5,10 +5,14 @@ declare(strict_types=1);
 namespace App\Services\Documents;
 
 use App\Models\Documents\CardToken;
+use BaconQrCode\Renderer\Image\ImagickImageBackEnd;
+use BaconQrCode\Renderer\Image\SvgImageBackEnd;
+use BaconQrCode\Renderer\ImageRenderer;
+use BaconQrCode\Renderer\RendererStyle\RendererStyle;
+use BaconQrCode\Writer;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\File;
 use RuntimeException;
-use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 /**
  * QR codes for cards, and the security model behind them.
@@ -119,18 +123,21 @@ final class QrCodeService
         $this->assertAvailable();
 
         $size ??= (int) config('pdf.qr.size', 140);
-        $format ??= $this->preferredFormat();
+        $format = $this->supportedFormat($format ?? $this->preferredFormat());
+        $backEnd = $format === 'png'
+            ? new ImagickImageBackEnd('png')
+            : new SvgImageBackEnd;
+        $renderer = new ImageRenderer(
+            new RendererStyle($size, (int) config('pdf.qr.margin', 0)),
+            $backEnd,
+        );
 
-        return (string) QrCode::format($format)
-            ->size($size)
-            ->margin((int) config('pdf.qr.margin', 0))
-            ->errorCorrection((string) config('pdf.qr.error_correction', 'Q'))
-            ->generate($content);
+        return (new Writer($renderer))->writeString($content);
     }
 
     public function dataUri(string $content, ?int $size = null, ?string $format = null): string
     {
-        $format ??= $this->preferredFormat();
+        $format = $this->supportedFormat($format ?? $this->preferredFormat());
         $mime = $format === 'svg' ? 'image/svg+xml' : 'image/png';
 
         return 'data:'.$mime.';base64,'.base64_encode($this->raw($content, $size, $format));
@@ -139,7 +146,7 @@ final class QrCodeService
     /**
      * PNG when Imagick is present, SVG otherwise.
      *
-     * simple-qrcode renders PNG through Imagick and has no GD path, so on the many
+     * The PNG backend requires Imagick, so on the many
      * shared hosts without the extension the choice is SVG or nothing. SVG also prints
      * sharper, so this is not purely a fallback.
      */
@@ -177,16 +184,25 @@ final class QrCodeService
 
     public function isAvailable(): bool
     {
-        return class_exists(QrCode::class);
+        return class_exists(Writer::class) && class_exists(ImageRenderer::class);
     }
 
     private function assertAvailable(): void
     {
         if (! $this->isAvailable()) {
             throw new RuntimeException(
-                'simplesoftwareio/simple-qrcode is not installed. Run: composer require simplesoftwareio/simple-qrcode'
+                'bacon/bacon-qr-code is not installed. Run: composer install'
             );
         }
+    }
+
+    private function supportedFormat(string $format): string
+    {
+        if ($format === 'png' && extension_loaded('imagick')) {
+            return 'png';
+        }
+
+        return 'svg';
     }
 
     private function secret(): string

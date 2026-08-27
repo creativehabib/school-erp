@@ -81,7 +81,7 @@ class BookInventory extends Component
             'shelfId' => ['nullable', 'integer', Rule::exists(Shelf::class, 'id')->where('is_active', true)],
             'title' => ['required', 'string', 'max:255'], 'author' => ['nullable', 'string', 'max:255'],
             'publisher' => ['nullable', 'string', 'max:255'],
-            'isbn' => ['nullable', 'string', 'max:30', Rule::unique(Book::class, 'isbn')->ignore($this->editingBookId)],
+            'isbn' => ['nullable', 'string', 'max:20', Rule::unique(Book::class, 'isbn')->ignore($this->editingBookId)],
             'totalCopies' => ['required', 'integer', 'min:1', 'max:1000'], 'isActive' => ['boolean'],
         ]);
 

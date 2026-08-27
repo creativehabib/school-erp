@@ -71,3 +71,16 @@ test('late return fine uses snapshotted daily rate and grace period', function (
 
     expect($issue->calculateFine(Carbon::parse('2026-08-15')))->toBe(40.0);
 });
+
+test('book ISBN validation matches the database column length', function () {
+    $admin = User::factory()->create();
+    $admin->assignRole(RoleName::Admin->value);
+    $category = BookCategory::query()->create(['name' => 'Science', 'code' => 'SCI']);
+
+    Livewire::actingAs($admin)->test(BookInventory::class)
+        ->set('bookCategoryId', $category->id)
+        ->set('title', 'Invalid ISBN Book')
+        ->set('isbn', str_repeat('1', 21))
+        ->call('save')
+        ->assertHasErrors(['isbn' => 'max']);
+});

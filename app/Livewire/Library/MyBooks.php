@@ -8,7 +8,6 @@ use App\Models\Academic\Student;
 use App\Models\Hrm\Employee;
 use App\Models\Library\BookIssue;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Attributes\Computed;
@@ -30,11 +29,11 @@ class MyBooks extends Component
     #[Computed]
     public function issues(): Collection
     {
-        return BookIssue::query()->forBorrower($this->borrower())->with('bookCopy.book:id,title,author')
+        return $this->borrower()->bookIssues()->with('bookCopy.book:id,title,author')
             ->latest('issued_on')->get();
     }
 
-    private function borrower(): Model
+    private function borrower(): Student|Employee
     {
         $user = Auth::user();
         $borrower = $user?->student()->first() ?? $user?->employee()->first();

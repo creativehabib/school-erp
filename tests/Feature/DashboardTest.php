@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\RoleName;
+use App\Models\Notice;
 use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Support\Facades\Gate;
@@ -31,12 +32,27 @@ test('users are sent to and can render their role dashboard', function (RoleName
         ->assertOk()
         ->assertSee($heading);
 })->with([
-    'super admin' => [RoleName::SuperAdmin, 'admin.dashboard', 'Administration Dashboard'],
-    'admin' => [RoleName::Admin, 'admin.dashboard', 'Administration Dashboard'],
-    'teacher' => [RoleName::Teacher, 'teacher.dashboard', 'Teacher Dashboard'],
-    'student' => [RoleName::Student, 'student.dashboard', 'Student Dashboard'],
-    'guardian' => [RoleName::Guardian, 'guardian.dashboard', 'Guardian Dashboard'],
+    'super admin' => [RoleName::SuperAdmin, 'admin.dashboard', 'Welcome back'],
+    'admin' => [RoleName::Admin, 'admin.dashboard', 'Welcome back'],
+    'teacher' => [RoleName::Teacher, 'teacher.dashboard', 'Welcome back'],
+    'student' => [RoleName::Student, 'student.dashboard', 'Welcome back'],
+    'guardian' => [RoleName::Guardian, 'guardian.dashboard', 'Welcome back'],
 ]);
+
+test('all role dashboards show only current active notices', function () {
+    $this->seed(RolePermissionSeeder::class);
+    $admin = User::factory()->create();
+    $admin->assignRole(RoleName::Admin->value);
+    Notice::factory()->create(['title' => 'Visible Notice', 'date' => today(), 'active_status' => true]);
+    Notice::factory()->create(['title' => 'Inactive Notice', 'date' => today(), 'active_status' => false]);
+    Notice::factory()->create(['title' => 'Future Notice', 'date' => today()->addDay(), 'active_status' => true]);
+
+    $this->actingAs($admin)->get(route('admin.dashboard'))
+        ->assertOk()
+        ->assertSee('Visible Notice')
+        ->assertDontSee('Inactive Notice')
+        ->assertDontSee('Future Notice');
+});
 
 test('a user cannot open another role dashboard', function () {
     $this->seed(RolePermissionSeeder::class);

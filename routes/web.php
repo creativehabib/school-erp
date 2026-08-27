@@ -22,6 +22,7 @@ use App\Livewire\Hrm\StaffDirectory;
 use App\Livewire\Library\BookInventory;
 use App\Livewire\Library\IssueReturnManager;
 use App\Livewire\Library\MyBooks;
+use App\Livewire\MainDashboard;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -42,7 +43,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('dashboard.unassigned');
 
     Route::prefix('admin')->middleware('role:super_admin|admin')->name('admin.')->group(function () {
-        Route::livewire('dashboard', 'pages::dashboards.admin')->name('dashboard');
+        Route::get('dashboard', MainDashboard::class)->name('dashboard');
         Route::livewire('users', 'pages::admin.users.index')->name('users.index');
         Route::get('academic/shifts', ManageShifts::class)->name('academic.shifts');
         Route::get('academic/classes', ManageClasses::class)->name('academic.classes');
@@ -95,15 +96,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('library.my_books');
 
     Route::prefix('teacher')->middleware('role:teacher')->name('teacher.')->group(function () {
-        Route::livewire('dashboard', 'pages::dashboards.teacher')->name('dashboard');
+        Route::get('dashboard', MainDashboard::class)->name('dashboard');
     });
 
     Route::prefix('student')->middleware('role:student')->name('student.')->group(function () {
-        Route::livewire('dashboard', 'pages::dashboards.student')->name('dashboard');
+        Route::get('dashboard', MainDashboard::class)->name('dashboard');
     });
 
     Route::prefix('guardian')->middleware('role:guardian')->name('guardian.')->group(function () {
-        Route::livewire('dashboard', 'pages::dashboards.guardian')->name('dashboard');
+        Route::get('dashboard', MainDashboard::class)->name('dashboard');
     });
 });
 

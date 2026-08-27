@@ -3,6 +3,7 @@
 use App\Http\Controllers\Documents\DownloadMarksheetsController;
 use App\Http\Controllers\Documents\DownloadOwnMarksheetController;
 use App\Http\Controllers\Documents\DownloadStudentIDCardsController;
+use App\Http\Controllers\Hrm\DownloadPayslipController;
 use App\Livewire\Academic\ManageAcademicYears;
 use App\Livewire\Academic\ManageClasses;
 use App\Livewire\Academic\ManageExams;
@@ -13,6 +14,11 @@ use App\Livewire\Academic\StudentAdmission;
 use App\Livewire\Academic\TakeAttendance;
 use App\Livewire\Documents\IDCardGenerator;
 use App\Livewire\Documents\MarksheetGenerator;
+use App\Livewire\Hrm\LeaveApprovals;
+use App\Livewire\Hrm\MyLeaves;
+use App\Livewire\Hrm\MyPayslips;
+use App\Livewire\Hrm\PayrollGenerator;
+use App\Livewire\Hrm\StaffDirectory;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -63,6 +69,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('my-marksheets/{result}', DownloadOwnMarksheetController::class)
         ->middleware('role:student|guardian')
         ->name('portal.marksheets.download');
+
+    Route::prefix('hrm')->middleware('role:super_admin|admin')->name('hrm.admin.')->group(function () {
+        Route::get('staff', StaffDirectory::class)->name('staff');
+        Route::get('leave-approvals', LeaveApprovals::class)->name('leave_approvals');
+        Route::get('payroll', PayrollGenerator::class)->name('payroll');
+    });
+
+    Route::prefix('my-hr')->middleware('role:teacher')->name('hrm.self.')->group(function () {
+        Route::get('leaves', MyLeaves::class)->name('leaves');
+        Route::get('payslips', MyPayslips::class)->name('payslips');
+        Route::get('payslips/{payslip}/download', DownloadPayslipController::class)->middleware('signed')->name('payslips.download');
+    });
 
     Route::prefix('teacher')->middleware('role:teacher')->name('teacher.')->group(function () {
         Route::livewire('dashboard', 'pages::dashboards.teacher')->name('dashboard');

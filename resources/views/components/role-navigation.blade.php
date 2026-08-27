@@ -69,6 +69,23 @@
     </flux:sidebar.item>
 </flux:sidebar.group>
 
+@if ($user->hasAnyRole([\App\Enums\RoleName::SuperAdmin->value, \App\Enums\RoleName::Admin->value, \App\Enums\RoleName::Teacher->value]))
+    <flux:sidebar.group :heading="__('HRM')" expandable>
+        @can('hrm.employee.view')
+            @if (! $user->hasRole(\App\Enums\RoleName::Teacher->value))
+                <flux:sidebar.item icon="user-group" :href="route('hrm.admin.staff')" :current="request()->routeIs('hrm.admin.staff')" wire:navigate>{{ __('Staff Directory') }}</flux:sidebar.item>
+            @endif
+        @endcan
+        @if ($user->hasAnyRole([\App\Enums\RoleName::SuperAdmin->value, \App\Enums\RoleName::Admin->value]))
+            <flux:sidebar.item icon="check-circle" :href="route('hrm.admin.leave_approvals')" :current="request()->routeIs('hrm.admin.leave_approvals')" wire:navigate>{{ __('Leave Approvals') }}</flux:sidebar.item>
+            <flux:sidebar.item icon="banknotes" :href="route('hrm.admin.payroll')" :current="request()->routeIs('hrm.admin.payroll')" wire:navigate>{{ __('Payroll & Salary') }}</flux:sidebar.item>
+        @else
+            <flux:sidebar.item icon="calendar-days" :href="route('hrm.self.leaves')" :current="request()->routeIs('hrm.self.leaves')" wire:navigate>{{ __('My Leaves') }}</flux:sidebar.item>
+            <flux:sidebar.item icon="document-currency-dollar" :href="route('hrm.self.payslips')" :current="request()->routeIs('hrm.self.payslips*')" wire:navigate>{{ __('My Payslips') }}</flux:sidebar.item>
+        @endif
+    </flux:sidebar.group>
+@endif
+
 @if ($role)
     <div class="px-3 py-2">
         <flux:badge color="indigo" size="sm">{{ $role->label() }}</flux:badge>

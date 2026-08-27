@@ -78,7 +78,7 @@
             </div>
 
             <div class="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-                <flux:input wire:model="fatherName" :label="__(\"Father's name\")" required />
+                <flux:input wire:model="fatherName" :label="__('Father name')" required />
                 <flux:input wire:model="fatherPhone" :label="__('Father phone')" inputmode="tel" required />
                 <flux:input wire:model="fatherEmail" :label="__('Father email / Login ID')" type="email" />
             </div>

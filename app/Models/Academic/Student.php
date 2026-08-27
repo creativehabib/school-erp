@@ -11,6 +11,7 @@ use App\Models\Accounts\FeeWaiver;
 use App\Models\Accounts\Invoice;
 use App\Models\Accounts\Payment;
 use App\Models\Identity\Board;
+use App\Models\Library\BookIssue;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -19,6 +20,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
@@ -98,6 +100,11 @@ class Student extends Model
     public function feeWaivers(): HasMany
     {
         return $this->hasMany(FeeWaiver::class);
+    }
+
+    public function bookIssues(): MorphMany
+    {
+        return $this->morphMany(BookIssue::class, 'borrower');
     }
 
     /* ------------------------------------------------------------------ */

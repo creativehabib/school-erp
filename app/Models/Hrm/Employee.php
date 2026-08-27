@@ -11,6 +11,7 @@ use App\Enums\EmploymentType;
 use App\Enums\Gender;
 use App\Enums\PaymentMethod;
 use App\Models\Academic\SectionTeacherAssignment;
+use App\Models\Library\BookIssue;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -18,6 +19,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
@@ -90,6 +92,11 @@ class Employee extends Model
     public function sectionAssignments(): HasMany
     {
         return $this->hasMany(SectionTeacherAssignment::class);
+    }
+
+    public function bookIssues(): MorphMany
+    {
+        return $this->morphMany(BookIssue::class, 'borrower');
     }
 
     /** Salary structure rows, including historical (closed) ones. */

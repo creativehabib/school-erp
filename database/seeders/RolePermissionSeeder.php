@@ -177,6 +177,7 @@ class RolePermissionSeeder extends Seeder
                 'academic.mark.enter',
                 'academic.mark.update',
                 'academic.marksheet.view',
+                'academic.marksheet.generate',
                 'hrm.leave.view',
                 'hrm.leave.apply',
                 'hrm.payslip.view',

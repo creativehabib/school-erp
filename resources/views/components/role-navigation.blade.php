@@ -86,6 +86,17 @@
     </flux:sidebar.group>
 @endif
 
+@if ($user->hasAnyRole([\App\Enums\RoleName::SuperAdmin->value, \App\Enums\RoleName::Admin->value, \App\Enums\RoleName::Teacher->value, \App\Enums\RoleName::Student->value]))
+    <flux:sidebar.group :heading="__('Library')" expandable>
+        @if ($user->hasAnyRole([\App\Enums\RoleName::SuperAdmin->value, \App\Enums\RoleName::Admin->value]))
+            <flux:sidebar.item icon="book-open" :href="route('library.admin.books')" :current="request()->routeIs('library.admin.books')" wire:navigate>{{ __('Manage Books') }}</flux:sidebar.item>
+            <flux:sidebar.item icon="arrows-right-left" :href="route('library.admin.issues')" :current="request()->routeIs('library.admin.issues')" wire:navigate>{{ __('Issue / Return') }}</flux:sidebar.item>
+        @else
+            <flux:sidebar.item icon="book-open" :href="route('library.my_books')" :current="request()->routeIs('library.my_books')" wire:navigate>{{ __('My Books') }}</flux:sidebar.item>
+        @endif
+    </flux:sidebar.group>
+@endif
+
 @if ($role)
     <div class="px-3 py-2">
         <flux:badge color="indigo" size="sm">{{ $role->label() }}</flux:badge>

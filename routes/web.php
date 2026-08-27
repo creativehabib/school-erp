@@ -19,6 +19,9 @@ use App\Livewire\Hrm\MyLeaves;
 use App\Livewire\Hrm\MyPayslips;
 use App\Livewire\Hrm\PayrollGenerator;
 use App\Livewire\Hrm\StaffDirectory;
+use App\Livewire\Library\BookInventory;
+use App\Livewire\Library\IssueReturnManager;
+use App\Livewire\Library\MyBooks;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -81,6 +84,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('payslips', MyPayslips::class)->name('payslips');
         Route::get('payslips/{payslip}/download', DownloadPayslipController::class)->middleware('signed')->name('payslips.download');
     });
+
+    Route::prefix('library')->middleware('role:super_admin|admin')->name('library.admin.')->group(function () {
+        Route::get('books', BookInventory::class)->name('books');
+        Route::get('issues', IssueReturnManager::class)->name('issues');
+    });
+
+    Route::get('my-library-books', MyBooks::class)
+        ->middleware('role:student|teacher')
+        ->name('library.my_books');
 
     Route::prefix('teacher')->middleware('role:teacher')->name('teacher.')->group(function () {
         Route::livewire('dashboard', 'pages::dashboards.teacher')->name('dashboard');

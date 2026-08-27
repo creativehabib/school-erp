@@ -1,8 +1,10 @@
 <?php
 
 use App\Enums\RoleName;
+use App\Jobs\SendSmsJob;
 use App\Livewire\Academic\TakeAttendance;
 use App\Models\Academic\AcademicSession;
+use App\Models\Academic\Guardian;
 use App\Models\Academic\SchoolClass;
 use App\Models\Academic\Section;
 use App\Models\Academic\SectionTeacherAssignment;
@@ -13,6 +15,7 @@ use App\Models\Academic\StudentEnrollment;
 use App\Models\Hrm\Employee;
 use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
+use Illuminate\Support\Facades\Queue;
 use Livewire\Livewire;
 
 beforeEach(function () {
@@ -172,6 +175,32 @@ test('saving attendance again updates the existing daily records', function () {
         'status' => 'late',
         'recorded_by' => $admin->id,
     ]);
+});
+
+test('a newly absent student queues one SMS for the primary guardian', function () {
+    Queue::fake();
+    $admin = attendanceUser(RoleName::Admin);
+    $placement = attendancePlacement();
+    $enrollment = attendanceEnrollment($placement, 'ADM-001', 'Student One', '1');
+    $guardian = Guardian::query()->create([
+        'name_en' => 'Student Father', 'relation' => 'father', 'phone' => '01712345678',
+    ]);
+    $enrollment->student->guardians()->attach($guardian->id, [
+        'is_primary' => true, 'receives_sms' => true, 'can_collect_student' => true,
+    ]);
+
+    $component = Livewire::actingAs($admin)->test(TakeAttendance::class)
+        ->set('schoolClassId', $placement['class']->id)
+        ->set('sectionId', $placement['section']->id)
+        ->set("attendanceData.{$enrollment->id}", 'absent')
+        ->call('saveAttendance')
+        ->assertHasNoErrors();
+
+    Queue::assertPushed(SendSmsJob::class, fn (SendSmsJob $job): bool => $job->phone === '01712345678'
+        && str_contains($job->message, 'Student One'));
+
+    $component->call('saveAttendance')->assertHasNoErrors();
+    Queue::assertPushed(SendSmsJob::class, 1);
 });
 
 test('every enrolled student requires a valid attendance status', function () {

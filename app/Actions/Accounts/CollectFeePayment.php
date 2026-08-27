@@ -7,10 +7,12 @@ namespace App\Actions\Accounts;
 use App\Enums\PaymentMethod;
 use App\Enums\PaymentStatus;
 use App\Enums\TransactionDirection;
+use App\Jobs\SendSmsJob;
 use App\Models\Academic\Student;
 use App\Models\Accounts\Invoice;
 use App\Models\Accounts\Payment;
 use App\Models\Accounts\PaymentAllocation;
+use App\Models\Identity\SchoolProfile;
 use App\Services\Accounts\DocumentNumberService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -55,7 +57,7 @@ class CollectFeePayment
 
         $paidAt ??= now();
 
-        return DB::transaction(function () use (
+        $payment = DB::transaction(function () use (
             $student, $amount, $method, $financialAccountId,
             $invoiceIds, $reference, $paidAt, $guardianId, $note
         ) {
@@ -116,6 +118,33 @@ class CollectFeePayment
 
             return $payment->load('allocations.invoice');
         });
+
+        $this->dispatchPaymentNotification($student, $payment);
+
+        return $payment;
+    }
+
+    private function dispatchPaymentNotification(Student $student, Payment $payment): void
+    {
+        $guardian = $student->guardians()
+            ->wherePivot('is_primary', true)
+            ->wherePivot('receives_sms', true)
+            ->first();
+
+        if (blank($guardian?->phone)) {
+            return;
+        }
+
+        $schoolName = SchoolProfile::query()->value('name_en') ?? config('app.name');
+        SendSmsJob::dispatch(
+            $guardian->phone,
+            __('Received BDT :amount for school fees of :student. Receipt: :receipt. Thank you. - :school', [
+                'amount' => number_format((float) $payment->amount, 2),
+                'student' => $student->name_en,
+                'receipt' => $payment->voucher_no,
+                'school' => $schoolName,
+            ]),
+        );
     }
 
     /**

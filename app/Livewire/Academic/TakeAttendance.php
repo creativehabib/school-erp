@@ -7,14 +7,18 @@ namespace App\Livewire\Academic;
 use App\Actions\Academic\RecordStudentAttendance;
 use App\Enums\AttendanceStatus;
 use App\Enums\RoleName;
+use App\Jobs\SendSmsJob;
 use App\Models\Academic\AcademicSession;
 use App\Models\Academic\SchoolClass;
 use App\Models\Academic\Section;
 use App\Models\Academic\StudentEnrollment;
+use App\Models\Academic\Student;
+use App\Models\Identity\SchoolProfile;
 use App\Models\User;
 use Flux\Flux;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
@@ -158,12 +162,22 @@ class TakeAttendance extends Component
 
         $user = Auth::user();
         abort_unless($user instanceof User, 401);
+        $previouslyAbsent = $this->students->filter(
+            fn (StudentEnrollment $enrollment): bool => $enrollment->attendances->first()?->status === AttendanceStatus::Absent
+        )->pluck('student_id');
         $result = $recordAttendance->handle(
             $validated['sectionId'],
             Carbon::parse($validated['date'])->startOfDay(),
             $validated['attendanceData'],
             recordedBy: $user,
         );
+        $newlyAbsentStudentIds = $this->students
+            ->filter(fn (StudentEnrollment $enrollment): bool => ($validated['attendanceData'][$enrollment->id] ?? null) === AttendanceStatus::Absent->value)
+            ->pluck('student_id')
+            ->diff($previouslyAbsent)
+            ->values()
+            ->all();
+        $this->dispatchAbsentNotifications($newlyAbsentStudentIds, Carbon::parse($validated['date']));
 
         unset($this->students);
         $this->loadAttendanceData();
@@ -172,6 +186,33 @@ class TakeAttendance extends Component
             heading: __('Attendance saved.'),
             text: trans_choice(':count record saved|:count records saved', $result['saved'], ['count' => $result['saved']]),
         );
+    }
+
+    /** @param array<int, int|string> $studentIds */
+    private function dispatchAbsentNotifications(array $studentIds, Carbon $date): void
+    {
+        if ($studentIds === []) {
+            return;
+        }
+
+        $schoolName = SchoolProfile::query()->value('name_en') ?? config('app.name');
+        Student::query()->whereKey($studentIds)->with(['guardians' => fn (BelongsToMany $query) => $query
+            ->wherePivot('is_primary', true)
+            ->wherePivot('receives_sms', true)])
+            ->get(['id', 'name_en'])
+            ->each(function (Student $student) use ($date, $schoolName): void {
+                $phone = $student->guardians->first()?->phone;
+                if (filled($phone)) {
+                    SendSmsJob::dispatch(
+                        $phone,
+                        __('Dear Parent, your child :student was absent from school on :date. - :school', [
+                            'student' => $student->name_en,
+                            'date' => $date->format('d M Y'),
+                            'school' => $schoolName,
+                        ]),
+                    );
+                }
+            });
     }
 
     private function loadAttendanceData(): void

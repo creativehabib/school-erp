@@ -136,7 +136,7 @@ class BookIssue extends Model
             return 0;
         }
 
-        return $graceEnd->diffInDays($reference->startOfDay());
+        return (int) $graceEnd->diffInDays($reference->startOfDay());
     }
 
     /**
